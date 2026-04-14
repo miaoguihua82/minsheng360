@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>民声360 · 平台管理后台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #1677FF;
+    --primary-light: #E6F0FF;
+    --success: #52C41A;
+    --warning: #FAAD14;
+    --danger: #FF4D4F;
+    --bg: #F0F2F5;
+    --sidebar-bg: #001529;
+    --sidebar-text: rgba(255,255,255,0.65);
+    --sidebar-active: #1677FF;
+    --card-bg: #fff;
+    --border: #E8E8E8;
+    --text-1: #1A1A1A;
+    --text-2: #555;
+    --text-3: #999;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif; background: var(--bg); color: var(--text-1); min-height: 100vh; display: flex; }
+
+  /* ===== 侧边栏 ===== */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--sidebar-bg);
+    display: flex; flex-direction: column; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    transition: width 0.2s;
+  }
+  .sidebar-logo {
+    height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .logo-icon {
+    width: 36px; height: 36px; background: var(--primary); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 800;
+  }
+  .logo-text { color: #fff; font-size: 16px; font-weight: 700; }
+  .logo-badge { background: rgba(255,255,255,0.15); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
+
+  .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .nav-group-title { color: rgba(255,255,255,0.3); font-size: 11px; padding: 12px 20px 6px; letter-spacing: 1px; text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 20px; cursor: pointer;
+    color: var(--sidebar-text); font-size: 14px; transition: all 0.15s; position: relative;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+  .nav-item.active { color: #fff; background: var(--primary); }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: #40A0FF; border-radius: 0 2px 2px 0;
+  }
+  .nav-item .badge {
+    margin-left: auto; background: var(--danger); color: #fff; font-size: 11px;
+    padding: 1px 7px; border-radius: 10px; font-weight: 600;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .admin-avatar {
+    width: 32px; height: 32px; background: var(--primary); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700;
+  }
+  .admin-info .name { color: #fff; font-size: 13px; font-weight: 600; }
+  .admin-info .role { color: rgba(255,255,255,0.4); font-size: 11px; }
+
+  /* ===== 主内容区 ===== */
+  .main { margin-left: 220px; min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
+
+  .topbar {
+    height: 64px; background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; color: var(--text-1); flex: 1; }
+  .topbar-time { font-size: 13px; color: var(--text-3); }
+  .topbar-btn {
+    padding: 7px 16px; border-radius: 6px; border: 1.5px solid var(--border);
+    font-size: 13px; cursor: pointer; background: #fff; color: var(--text-2);
+    display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+  }
+  .topbar-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .topbar-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .topbar-btn.primary:hover { background: #0e5cdb; }
+
+  .content { padding: 24px; flex: 1; }
+
+  /* ===== 卡片 ===== */
+  .card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+  .card-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 20px; }
+  .card-action { font-size: 13px; color: var(--primary); cursor: pointer; }
+
+  /* ===== 统计卡片 ===== */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border);
+    padding: 20px; display: flex; align-items: flex-start; gap: 16px;
+  }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .stat-info .value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-info .label { font-size: 13px; color: var(--text-3); margin-bottom: 6px; }
+  .stat-info .trend { font-size: 12px; }
+  .trend-up { color: var(--success); }
+  .trend-down { color: var(--danger); }
+
+  /* ===== 页面切换 ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== 图表区 ===== */
+  .chart-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-wrap { position: relative; height: 260px; display: flex; align-items: flex-end; gap: 8px; padding: 20px 0 0; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bar {
+    width: 100%; border-radius: 4px 4px 0 0;
+    background: linear-gradient(to top, var(--primary), #69B4FF);
+    transition: height 0.6s cubic-bezier(.22,1,.36,1); cursor: pointer; position: relative;
+  }
+  .bar:hover::after {
+    content: attr(data-val); position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.75); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+  }
+  .bar-label { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+
+  /* 饼图 */
+  .pie-legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 16px; }
+  .pie-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+  .pie-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ===== 表格 ===== */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { background: #FAFAFA; padding: 12px 16px; text-align: left; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 14px 16px; border-bottom: 1px solid #F5F5F5; color: var(--text-1); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #FAFBFF; }
+
+  /* ===== 标签 ===== */
+  .tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .tag-pending { background: #FFF7E6; color: #D46B08; }
+  .tag-processing { background: #E6F4FF; color: #0958D9; }
+  .tag-done { background: #F6FFED; color: #389E0D; }
+  .tag-urgent { background: #FFF1F0; color: #CF1322; }
+  .tag-forward { background: #F9F0FF; color: #531DAB; }
+  .tag-active { background: #F6FFED; color: #389E0D; }
+  .tag-inactive { background: #F5F5F5; color: #8C8C8C; }
+
+  /* ===== 按钮 ===== */
+  .btn { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; font-weight: 500; transition: all 0.15s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #0e5cdb; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-ghost { background: #fff; border: 1.5px solid var(--border); color: var(--text-2); }
+  .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+  .btn + .btn { margin-left: 6px; }
+
+  /* ===== 表单 ===== */
+  .form-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .form-label { width: 100px; font-size: 14px; color: var(--text-2); flex-shrink: 0; text-align: right; }
+  .form-control {
+    flex: 1; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 6px;
+    font-size: 14px; outline: none; transition: border-color 0.15s; background: #fff;
+  }
+  .form-control:focus { border-color: var(--primary); }
+  select.form-control { cursor: pointer; }
+
+  /* ===== 设置项 ===== */
+  .setting-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 0; border-bottom: 1px solid #F5F5F5;
+  }
+  .setting-item:last-child { border-bottom: none; }
+  .setting-label .title { font-size: 14px; font-weight: 600; }
+  .setting-label .desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .setting-control { display: flex; align-items: center; gap: 10px; }
+
+  /* 开关 */
+  .toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+  .toggle input { display: none; }
+  .toggle-track {
+    width: 44px; height: 24px; background: #CCC; border-radius: 12px;
+    transition: background 0.2s; cursor: pointer;
+  }
+  .toggle input:checked + .toggle-track { background: var(--primary); }
+  .toggle-thumb {
+    position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    background: #fff; border-radius: 50%; transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(20px); }
+
+  /* 数字输入 */
+  .num-input-wrap { display: flex; align-items: center; gap: 8px; }
+  .num-input { width: 64px; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 14px; text-align: center; outline: none; }
+  .num-input:focus { border-color: var(--primary); }
+  .num-unit { font-size: 13px; color: var(--text-3); }
+
+  /* ===== 进度条 ===== */
+  .progress-bar { height: 8px; background: #F0F0F0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+
+  /* ===== 分页 ===== */
+  .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 16px; }
+  .page-btn {
+    min-width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer;
+    background: #fff; color: var(--text-2); transition: all 0.15s;
+  }
+  .page-btn:hover, .page-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  /* ===== Toast ===== */
+  #toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 9999; opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== 模态框 ===== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 500; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px; width: 520px; max-width: 90vw;
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+  .modal-header { padding: 20px 24px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { width: 28px; height: 28px; border-radius: 50%; border: none; background: #F5F5F5; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: #E8E8E8; }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 12px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); }
+
+  /* ===== 词云 ===== */
+  .word-cloud { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 0; }
+  .word-item { padding: 5px 14px; border-radius: 20px; cursor: pointer; transition: transform 0.15s; }
+  .word-item:hover { transform: scale(1.1); }
+
+  /* ===== 搜索框 ===== */
+  .search-wrap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .search-input { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; width: 200px; }
+  .search-input:focus { border-color: var(--primary); }
+  .search-select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; }
+  .search-select:focus { border-color: var(--primary); }
+
+  /* ===== 报表卡片 ===== */
+  .report-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .report-card {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 24px 16px;
+    text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .report-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .report-card:hover .report-icon { transform: scale(1.1); }
+  .report-icon { font-size: 36px; margin-bottom: 10px; transition: transform 0.2s; display: block; }
+  .report-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .report-desc { font-size: 12px; color: var(--text-3); }
+  .report-badge {
+    position: absolute; top: 10px; right: 10px; background: var(--success);
+    color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* ===== 空状态 ===== */
+  .empty-state { text-align: center; padding: 40px; color: var(--text-3); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 1200px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .report-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .sidebar { width: 0; overflow: hidden; }
+    .main { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">声</div>
+    <div>
+      <span class="logo-text">民声360</span>
+      <span class="logo-badge">管理</span>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-title">核心功能</div>
+    <div class="nav-item active" onclick="switchPage('dashboard',this)">
+      <span class="nav-icon">📊</span> 数据概览
+    </div>
+    <div class="nav-item" onclick="switchPage('questions',this)">
+      <span class="nav-icon">💬</span> 问政管理
+      <span class="badge">12</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('dept',this)">
+      <span class="nav-icon">🏛️</span> 部门管理
+    </div>
+    <div class="nav-item" onclick="switchPage('audit',this)">
+      <span class="nav-icon">✅</span> 入驻审核
+      <span class="badge">2</span>
+    </div>
+    <div class="nav-group-title">统计报表</div>
+    <div class="nav-item" onclick="switchPage('stats',this)">
+      <span class="nav-icon">📈</span> 数据统计
+    </div>
+    <div class="nav-item" onclick="switchPage('report',this)">
+      <span class="nav-icon">📄</span> 报表中心
+    </div>
+    <div class="nav-group-title">系统配置</div>
+    <div class="nav-item" onclick="switchPage('settings',this)">
+      <span class="nav-icon">⚙️</span> 系统设置
+    </div>
+    <div class="nav-item" onclick="switchPage('users',this)">
+      <span class="nav-icon">👤</span> 账号管理
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-avatar">管</div>
+    <div class="admin-info">
+      <div class="name">超级管理员</div>
+      <div class="role">平台最高权限</div>
+    </div>
+  </div>
+</nav>
+
+<!-- 主内容区 -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">数据概览</div>
+    <div class="topbar-time" id="topbar-time"></div>
+    <button class="topbar-btn" onclick="showToast('消息中心（演示）')">🔔 消息 <span style="background:var(--danger);color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;">5</span></button>
+    <button class="topbar-btn" onclick="showToast('已刷新数据')">🔄 刷新</button>
+    <button class="topbar-btn primary" onclick="switchPage('settings',document.querySelector('[onclick*=settings]'))">⚙️ 设置</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ====== 数据概览 ====== -->
+    <div id="page-dashboard" class="page active">
+      <!-- 统计卡片 -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E6F0FF;">💬</div>
+          <div class="stat-info">
+            <div class="value" style="color:var(--primary);">2,847</div>
+            <div class="label">累计问政总量</div>
+            <div class="trend trend-up">↑ 今日新增 48 条</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#F6FFED;">✅</div>
+          <div class="stat-info">
+            <div class="value" style="color:var(--success);">91.3%</div>
+            <div class="label">本月办结率</div>
+            <div class="trend trend-up">↑ 较上月 +2.1%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FFF1F0;">⚠️</div>
+          <div class="stat-info">
+            <div class="value" style="color:var(--danger);">3</div>
+            <div class="label">超时未回复</div>
+            <div class="trend trend-down">需立即跟进</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FFF7E6;">🏛️</div>
+          <div class="stat-info">
+            <div class="value" style="color:var(--warning);">89</div>
+            <div class="label">入驻单位数</div>
+            <div class="trend trend-up">↑ 本月新增 4 家</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图表区 -->
+      <div class="chart-grid">
+        <!-- 7天折线/柱图 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📅 近7天问政趋势</div>
+            <div style="display:flex;gap:8px;">
+              <span style="font-size:12px;color:var(--text-3);">总量 <b style="color:var(--primary);">316</b></span>
+              <span style="font-size:12px;color:var(--text-3);">办结 <b style="color:var(--success);">288</b></span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap" id="bar-chart"></div>
+            <div style="display:flex;justify-content:space-around;margin-top:6px;" id="bar-labels"></div>
+          </div>
+        </div>
+        <!-- 类型分布 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🍩 问政类型分布</div>
+          </div>
+          <div class="card-body" style="text-align:center;">
+            <canvas id="pieCanvas" width="180" height="180" style="margin:0 auto;display:block;"></canvas>
+            <div class="pie-legend" id="pie-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 部门效率排行 + 超时列表 -->
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏆 部门回复效率 TOP10</div>
+            <span class="card-action" onclick="switchPage('stats',document.querySelector('[onclick*=stats]'))">查看全部 ›</span>
+          </div>
+          <div class="card-body" style="padding-top:10px;">
+            <div id="dept-rank-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" style="color:var(--danger);">🚨 超时预警列表</div>
+            <span class="badge" style="background:var(--danger);color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;">3条</span>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>编号</th><th>部门</th><th>超时</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td style="color:var(--primary);">#2041</td><td>城管局</td><td style="color:var(--danger);font-weight:700;">超时2天</td><td><button class="btn btn-ghost" onclick="showToast('已催办')">催办</button></td></tr>
+                <tr><td style="color:var(--primary);">#2038</td><td>环保局</td><td style="color:var(--warning);font-weight:700;">超时1天</td><td><button class="btn btn-ghost" onclick="showToast('已催办')">催办</button></td></tr>
+                <tr><td style="color:var(--primary);">#2035</td><td>交通局</td><td style="color:var(--warning);font-weight:700;">超时1天</td><td><button class="btn btn-ghost" onclick="showToast('已催办')">催办</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 热词云 -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header"><div class="card-title">🔥 近期热点词云</div></div>
+        <div class="card-body">
+          <div class="word-cloud" id="word-cloud"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 问政管理 ====== -->
+    <div id="page-questions" class="page">
+      <div class="search-wrap">
+        <input class="search-input" placeholder="搜索编号/内容关键词…" type="text">
+        <select class="search-select"><option>全部状态</option><option>待受理</option><option>处理中</option><option>已办结</option><option>已转发</option></select>
+        <select class="search-select"><option>全部类型</option><option>道路交通</option><option>城市管理</option><option>民生保障</option><option>教育医疗</option></select>
+        <select class="search-select"><option>所有部门</option><option>城管局</option><option>交通局</option><option>教育局</option><option>卫生健康局</option></select>
+        <button class="btn btn-primary" onclick="showToast('已筛选')">🔍 筛选</button>
+        <button class="btn btn-ghost" onclick="showToast('已导出')">📥 导出</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>编号</th><th>提交时间</th><th>问政内容（摘要）</th><th>目标部门</th><th>状态</th><th>是否紧急</th><th>截止日期</th><th>操作</th></tr>
+            </thead>
+            <tbody id="question-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="page-btn">‹</div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn">…</div>
+          <div class="page-btn">12</div>
+          <div class="page-btn">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 部门管理 ====== -->
+    <div id="page-dept" class="page">
+      <div class="search-wrap">
+        <input class="search-input" placeholder="搜索部门名称…" type="text">
+        <select class="search-select"><option>全部类型</option><option>市直部门</option><option>乡镇政府</option><option>街道办事处</option></select>
+        <select class="search-select"><option>全部状态</option><option>正常运营</option><option>已停用</option></select>
+        <button class="btn btn-primary" onclick="showToast('已筛选')">🔍 筛选</button>
+        <button class="btn btn-ghost" style="margin-left:auto;" onclick="openModal('add-dept-modal')">＋ 新增部门</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>部门名称</th><th>类型</th><th>负责人</th><th>联系电话</th><th>累计问政</th><th>办结率</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody id="dept-table"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="page-btn">‹</div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 入驻审核 ====== -->
+    <div id="page-audit" class="page">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">📥 待审核申请</div><span class="badge" style="background:var(--danger);color:#fff;padding:4px 12px;border-radius:20px;font-size:13px;">2 条待处理</span></div>
+        <div class="card-body" style="padding:0;">
+          <table>
+            <thead><tr><th>申请单位</th><th>类型</th><th>负责人</th><th>联系方式</th><th>申请时间</th><th>入驻理由</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><b>某某环保科技公司</b></td>
+                <td>其他企事业</td>
+                <td>李志远</td>
+                <td>138****5678</td>
+                <td>2026-04-12 14:32</td>
+                <td style="color:var(--text-3);">承担政府委托环保检测项目</td>
+                <td>
+                  <button class="btn btn-success" onclick="showToast('✅ 已通过审核')">通过</button>
+                  <button class="btn btn-danger" onclick="openModal('reject-modal')">驳回</button>
+                  <button class="btn btn-ghost" onclick="openModal('audit-detail-modal')">详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><b>CC镇人民政府</b></td>
+                <td>乡镇政府</td>
+                <td>张国华</td>
+                <td>0826-5****12</td>
+                <td>2026-04-11 09:15</td>
+                <td style="color:var(--text-3);">基层乡镇政府，服务本辖区群众</td>
+                <td>
+                  <button class="btn btn-success" onclick="showToast('✅ 已通过审核')">通过</button>
+                  <button class="btn btn-danger" onclick="openModal('reject-modal')">驳回</button>
+                  <button class="btn btn-ghost" onclick="openModal('audit-detail-modal')">详情</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 历史审核记录</div></div>
+        <div class="card-body" style="padding:0;">
+          <table>
+            <thead><tr><th>单位名称</th><th>类型</th><th>申请时间</th><th>审核时间</th><th>审核结果</th><th>备注</th></tr></thead>
+            <tbody>
+              <tr><td>华蓥市市场监督管理局</td><td>市直部门</td><td>2026-03-18</td><td>2026-03-19</td><td><span class="tag tag-done">已通过</span></td><td>-</td></tr>
+              <tr><td>阳和镇人民政府</td><td>乡镇政府</td><td>2026-03-15</td><td>2026-03-16</td><td><span class="tag tag-done">已通过</span></td><td>-</td></tr>
+              <tr><td>某培训机构</td><td>其他</td><td>2026-03-10</td><td>2026-03-11</td><td><span class="tag tag-urgent">已驳回</span></td><td>不符合入驻条件</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 数据统计 ====== -->
+    <div id="page-stats" class="page">
+      <!-- 顶部筛选 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-body" style="padding:14px 20px;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <span style="font-size:14px;color:var(--text-2);font-weight:600;">统计维度：</span>
+            <select class="search-select"><option>2026年</option><option>2025年</option></select>
+            <select class="search-select"><option>全市</option><option>市直部门</option><option>乡镇政府</option></select>
+            <select class="search-select"><option>全部类型</option><option>道路交通</option><option>城市管理</option><option>民生保障</option></select>
+            <button class="btn btn-primary" onclick="showToast('已更新统计')">查询</button>
+            <button class="btn btn-ghost" style="margin-left:auto;" onclick="showToast('已导出统计报表')">📥 导出统计</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="stat-icon" style="background:#E6F0FF;">📨</div><div class="stat-info"><div class="value" style="color:var(--primary);">1,248</div><div class="label">本年问政总量</div><div class="trend trend-up">↑ 较去年 +18.6%</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F6FFED;">⚡</div><div class="stat-info"><div class="value" style="color:var(--success);">2.8天</div><div class="label">平均回复时长</div><div class="trend trend-up">↓ 较去年缩短0.5天</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FFF7E6;">🔁</div><div class="stat-info"><div class="value" style="color:var(--warning);">8.2%</div><div class="label">转发率</div><div class="trend trend-down">↓ 较去年下降1.3%</div></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#F9F0FF;">😊</div><div class="stat-info"><div class="value" style="color:#722ED1;">96.1%</div><div class="label">群众满意度</div><div class="trend trend-up">↑ 较去年 +0.8%</div></div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 各部门问政量 & 办结率对比</div></div>
+          <div class="card-body" style="padding-top:10px;">
+            <div id="dept-stats-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📅 月度问政趋势（本年）</div></div>
+          <div class="card-body">
+            <div class="chart-wrap" id="monthly-chart" style="height:220px;"></div>
+            <div style="display:flex;justify-content:space-around;margin-top:6px;" id="monthly-labels"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 报表中心 ====== -->
+    <div id="page-report" class="page">
+      <div class="report-grid" style="margin-bottom:24px;">
+        <div class="report-card" onclick="showToast('📄 周报生成中，请稍候…')">
+          <span class="report-icon">📋</span>
+          <div class="report-name">周报</div>
+          <div class="report-desc">每周工作汇总</div>
+          <span class="report-badge">自动</span>
+        </div>
+        <div class="report-card" onclick="showToast('📄 月报生成中，请稍候…')">
+          <span class="report-icon">📊</span>
+          <div class="report-name">月报</div>
+          <div class="report-desc">每月运营报告</div>
+          <span class="report-badge">自动</span>
+        </div>
+        <div class="report-card" onclick="showToast('📄 年报生成中，请稍候…')">
+          <span class="report-icon">📈</span>
+          <div class="report-name">年报</div>
+          <div class="report-desc">年度综合分析</div>
+          <span class="report-badge">自动</span>
+        </div>
+        <div class="report-card" onclick="openModal('custom-report-modal')">
+          <span class="report-icon">🛠️</span>
+          <div class="report-name">自定义报表</div>
+          <div class="report-desc">按需选择维度导出</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">🗂️ 已生成报表</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>报表名称</th><th>类型</th><th>生成时间</th><th>生成方式</th><th>大小</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>2026年第15周工作周报</td><td><span class="tag tag-processing">周报</span></td><td>2026-04-13 08:00</td><td>自动生成</td><td>238 KB</td><td><button class="btn btn-primary" onclick="showToast('开始下载…')">⬇ 下载</button><button class="btn btn-ghost" onclick="showToast('预览中…')">👁 预览</button></td></tr>
+              <tr><td>2026年3月工作月报</td><td><span class="tag tag-done">月报</span></td><td>2026-04-01 08:00</td><td>自动生成</td><td>512 KB</td><td><button class="btn btn-primary" onclick="showToast('开始下载…')">⬇ 下载</button><button class="btn btn-ghost" onclick="showToast('预览中…')">👁 预览</button></td></tr>
+              <tr><td>2025年工作年报</td><td><span class="tag tag-forward">年报</span></td><td>2026-01-01 08:00</td><td>自动生成</td><td>2.1 MB</td><td><button class="btn btn-primary" onclick="showToast('开始下载…')">⬇ 下载</button><button class="btn btn-ghost" onclick="showToast('预览中…')">👁 预览</button></td></tr>
+              <tr><td>道路交通专项分析报告</td><td><span class="tag tag-pending">自定义</span></td><td>2026-04-10 16:32</td><td>手动生成</td><td>389 KB</td><td><button class="btn btn-primary" onclick="showToast('开始下载…')">⬇ 下载</button><button class="btn btn-ghost" onclick="showToast('预览中…')">👁 预览</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 系统设置 ====== -->
+    <div id="page-settings" class="page">
+      <!-- 回复时限 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">⏰ 回复时限设置</div></div>
+        <div class="card-body">
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">普通问政回复时限</div><div class="desc">适用于一般性建议和投诉</div></div>
+            <div class="setting-control">
+              <div class="num-input-wrap"><input class="num-input" type="number" value="5" min="1" max="30"><span class="num-unit">个工作日</span></div>
+              <button class="btn btn-primary" onclick="showToast('✅ 保存成功')">保存</button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">紧急问政回复时限</div><div class="desc">涉及紧急安全隐患等情况</div></div>
+            <div class="setting-control">
+              <div class="num-input-wrap"><input class="num-input" type="number" value="2" min="1" max="10"><span class="num-unit">个工作日</span></div>
+              <button class="btn btn-primary" onclick="showToast('✅ 保存成功')">保存</button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">部门转发时限</div><div class="desc">从收到问政到转发完成的时限</div></div>
+            <div class="setting-control">
+              <div class="num-input-wrap"><input class="num-input" type="number" value="3" min="1" max="15"><span class="num-unit">个工作日</span></div>
+              <button class="btn btn-primary" onclick="showToast('✅ 保存成功')">保存</button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">超时自动催办</div><div class="desc">超时后自动向相关部门负责人发送催办通知</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 报表设置 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">📄 自动报表设置</div></div>
+        <div class="card-body">
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">周报自动生成</div><div class="desc">每周一 08:00 自动生成上周工作报告</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">月报自动生成</div><div class="desc">每月1日 08:00 自动生成上月工作报告</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">年报自动生成</div><div class="desc">每年1月1日 08:00 自动生成上年工作报告</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">报表格式</div><div class="desc">选择导出文件格式</div></div>
+            <div class="setting-control">
+              <select class="search-select"><option>Word (.docx)</option><option>Excel (.xlsx)</option><option>PDF (.pdf)</option></select>
+              <button class="btn btn-primary" onclick="showToast('✅ 保存成功')">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通知设置 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><div class="card-title">🔔 通知推送设置</div></div>
+        <div class="card-body">
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">新问政到达通知</div><div class="desc">向对应部门负责人推送消息通知</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">群众满意度评价提醒</div><div class="desc">问政办结后提醒群众评价</div></div>
+            <div class="setting-control">
+              <label class="toggle" onclick="this.querySelector('input').click(); showToast('设置已更新')">
+                <input type="checkbox" checked>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label"><div class="title">超时催办短信</div><div class="desc">通过短信方式向责任人催办</div></div>
+            <div class="setting-control">
+              <select class="search-select"><option>关闭</option><option>微信通知</option><option>短信通知</option><option>两者都发</option></select>
+              <button class="btn btn-primary" onclick="showToast('✅ 保存成功')">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 平台基础信息 -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏷️ 平台基础信息</div></div>
+        <div class="card-body">
+          <div class="form-row"><label class="form-label">平台名称</label><input class="form-control" value="民声360"></div>
+          <div class="form-row"><label class="form-label">主管单位</label><input class="form-control" value="华蓥市融媒体中心"></div>
+          <div class="form-row"><label class="form-label">联系电话</label><input class="form-control" value="0826-XXXXXXX"></div>
+          <div class="form-row"><label class="form-label">工作时间</label><input class="form-control" value="周一至周五 09:00-17:30"></div>
+          <div style="text-align:right;">
+            <button class="btn btn-primary" onclick="showToast('✅ 平台信息保存成功')">保存设置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 账号管理 ====== -->
+    <div id="page-users" class="page">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="openModal('add-user-modal')">＋ 新增管理员</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>姓名</th><th>账号</th><th>角色</th><th>关联部门</th><th>最后登录</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td><b>超级管理员</b></td><td>admin</td><td><span class="tag tag-urgent">超级管理员</span></td><td>平台</td><td>2026-04-13 16:20</td><td><span class="tag tag-active">正常</span></td><td><button class="btn btn-ghost" onclick="showToast('权限最高，无法编辑')">编辑</button></td></tr>
+              <tr><td>王小明</td><td>wangxm</td><td><span class="tag tag-processing">部门管理员</span></td><td>城管局</td><td>2026-04-13 11:30</td><td><span class="tag tag-active">正常</span></td><td><button class="btn btn-ghost" onclick="openModal('edit-user-modal')">编辑</button><button class="btn btn-danger" onclick="showToast('已停用账号')">停用</button></td></tr>
+              <tr><td>李秀芳</td><td>lixf</td><td><span class="tag tag-processing">部门管理员</span></td><td>教育局</td><td>2026-04-12 15:22</td><td><span class="tag tag-active">正常</span></td><td><button class="btn btn-ghost" onclick="openModal('edit-user-modal')">编辑</button><button class="btn btn-danger" onclick="showToast('已停用账号')">停用</button></td></tr>
+              <tr><td>张伟</td><td>zhangwei</td><td><span class="tag tag-processing">部门管理员</span></td><td>交通局</td><td>2026-04-10 09:05</td><td><span class="tag tag-inactive">已停用</span></td><td><button class="btn btn-ghost" onclick="openModal('edit-user-modal')">编辑</button><button class="btn btn-success" onclick="showToast('已启用账号')">启用</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ====== 模态框 ====== -->
+<!-- 驳回原因 -->
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">驳回原因</div><button class="modal-close" onclick="closeModal('reject-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">驳回原因</label><textarea class="form-control" rows="4" placeholder="请填写驳回理由，将通知申请方…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('reject-modal')">取消</button>
+      <button class="btn btn-danger" onclick="closeModal('reject-modal');showToast('已驳回并通知申请方')">确认驳回</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核详情 -->
+<div class="modal-overlay" id="audit-detail-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">入驻申请详情</div><button class="modal-close" onclick="closeModal('audit-detail-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">单位名称</label><input class="form-control" value="某某环保科技公司" readonly></div>
+      <div class="form-row"><label class="form-label">单位类型</label><input class="form-control" value="其他企事业" readonly></div>
+      <div class="form-row"><label class="form-label">统一社会<br>信用代码</label><input class="form-control" value="91510129XXXXXXXXXX" readonly></div>
+      <div class="form-row"><label class="form-label">负责人</label><input class="form-control" value="李志远" readonly></div>
+      <div class="form-row"><label class="form-label">联系方式</label><input class="form-control" value="138****5678" readonly></div>
+      <div class="form-row"><label class="form-label">办公地址</label><input class="form-control" value="华蓥市高新区科技路XX号" readonly></div>
+      <div class="form-row"><label class="form-label">入驻理由</label><textarea class="form-control" rows="3" readonly>承担政府委托环保检测项目，需接受群众监督和问政。</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('audit-detail-modal')">关闭</button>
+      <button class="btn btn-success" onclick="closeModal('audit-detail-modal');showToast('✅ 已通过审核')">通过审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增部门 -->
+<div class="modal-overlay" id="add-dept-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">新增部门</div><button class="modal-close" onclick="closeModal('add-dept-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">部门名称</label><input class="form-control" placeholder="请输入部门全称"></div>
+      <div class="form-row"><label class="form-label">部门类型</label><select class="form-control"><option>市直部门</option><option>乡镇政府</option><option>街道办事处</option></select></div>
+      <div class="form-row"><label class="form-label">负责人</label><input class="form-control" placeholder="负责人姓名"></div>
+      <div class="form-row"><label class="form-label">联系电话</label><input class="form-control" placeholder="联系方式"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-dept-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('add-dept-modal');showToast('✅ 部门添加成功')">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 自定义报表 -->
+<div class="modal-overlay" id="custom-report-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">自定义报表</div><button class="modal-close" onclick="closeModal('custom-report-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">报表名称</label><input class="form-control" placeholder="如：道路交通专项分析"></div>
+      <div class="form-row"><label class="form-label">时间范围</label><input class="form-control" type="date" value="2026-01-01"></div>
+      <div class="form-row" style="align-items:center;"><label class="form-label">至</label><input class="form-control" type="date" value="2026-04-13"></div>
+      <div class="form-row"><label class="form-label">统计维度</label><select class="form-control"><option>全部维度</option><option>按部门</option><option>按类型</option><option>按乡镇</option></select></div>
+      <div class="form-row"><label class="form-label">导出格式</label><select class="form-control"><option>Word (.docx)</option><option>Excel (.xlsx)</option><option>PDF (.pdf)</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('custom-report-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('custom-report-modal');showToast('📄 报表生成中，完成后自动下载')">生成报表</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增管理员 -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">新增管理员</div><button class="modal-close" onclick="closeModal('add-user-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">姓名</label><input class="form-control" placeholder="管理员姓名"></div>
+      <div class="form-row"><label class="form-label">登录账号</label><input class="form-control" placeholder="登录账号（字母数字）"></div>
+      <div class="form-row"><label class="form-label">初始密码</label><input class="form-control" type="password" placeholder="初始密码（建议首次登录修改）"></div>
+      <div class="form-row"><label class="form-label">角色</label><select class="form-control"><option>部门管理员</option><option>统计查看员</option></select></div>
+      <div class="form-row"><label class="form-label">关联部门</label><select class="form-control"><option>城管局</option><option>教育局</option><option>交通局</option><option>卫生健康局</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('add-user-modal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('add-user-modal');showToast('✅ 管理员账号已创建')">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ===== 工具函数 =====
+const $ = id => document.getElementById(id);
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+// 点击遮罩关闭
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ===== 页面切换 =====
+const pageNames = {
+  dashboard: '数据概览', questions: '问政管理', dept: '部门管理',
+  audit: '入驻审核', stats: '数据统计', report: '报表中心',
+  settings: '系统设置', users: '账号管理'
+};
+
+function switchPage(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $(`page-${name}`).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  $('topbar-title').textContent = pageNames[name] || name;
+}
+
+// ===== 实时时间 =====
+function updateTime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  $('topbar-time').textContent = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+updateTime(); setInterval(updateTime, 1000);
+
+// ===== 7天柱状图 =====
+function initBarChart() {
+  const days = ['4/7','4/8','4/9','4/10','4/11','4/12','4/13'];
+  const vals = [38, 52, 44, 61, 47, 55, 19];
+  const max = Math.max(...vals);
+  const wrap = $('bar-chart');
+  const labels = $('bar-labels');
+  if (!wrap) return;
+  wrap.innerHTML = ''; labels.innerHTML = '';
+  vals.forEach((v, i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '0';
+    bar.style.width = '100%';
+    bar.setAttribute('data-val', `${v}条`);
+    col.appendChild(bar);
+    wrap.appendChild(col);
+    setTimeout(() => { bar.style.height = (v / max * 200) + 'px'; }, 100 + i * 60);
+
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:12px;color:var(--text-3);flex:1;text-align:center;';
+    lbl.textContent = days[i];
+    labels.appendChild(lbl);
+  });
+}
+
+// ===== 月度柱状图 =====
+function initMonthlyChart() {
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const vals = [82, 95, 114, 120, 0, 0, 0, 0, 0, 0, 0, 0];
+  const max = 140;
+  const wrap = $('monthly-chart');
+  const labels = $('monthly-labels');
+  if (!wrap) return;
+  wrap.innerHTML = ''; labels.innerHTML = '';
+  vals.forEach((v, i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '0'; bar.style.width = '100%';
+    bar.style.background = v === 0 ? '#E8E8E8' : 'linear-gradient(to top, var(--primary), #69B4FF)';
+    if (v > 0) bar.setAttribute('data-val', `${v}条`);
+    col.appendChild(bar);
+    wrap.appendChild(col);
+    setTimeout(() => { bar.style.height = (Math.max(v, v===0?6:0) / max * 180) + 'px'; }, 100 + i * 40);
+
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:11px;color:var(--text-3);flex:1;text-align:center;';
+    lbl.textContent = months[i];
+    labels.appendChild(lbl);
+  });
+}
+
+// ===== 饼图（Canvas）=====
+function initPieChart() {
+  const canvas = $('pieCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const data = [
+    { label: '道路交通', value: 28, color: '#1677FF' },
+    { label: '城市管理', value: 22, color: '#52C41A' },
+    { label: '民生保障', value: 18, color: '#FAAD14' },
+    { label: '教育医疗', value: 14, color: '#FF4D4F' },
+    { label: '农村建设', value: 10, color: '#722ED1' },
+    { label: '其他', value: 8, color: '#13C2C2' },
+  ];
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const cx = 90, cy = 90, r = 75, ir = 40;
+  let start = -Math.PI / 2;
+  ctx.clearRect(0, 0, 180, 180);
+  data.forEach(d => {
+    const angle = (d.value / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + angle);
+    ctx.closePath();
+    ctx.fillStyle = d.color;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    start += angle;
+  });
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillStyle = '#1A1A1A';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('问政', cx, cy - 9);
+  ctx.fillText('类型', cx, cy + 11);
+
+  const legend = $('pie-legend');
+  if (legend) {
+    legend.innerHTML = data.map(d => `
+      <div class="pie-item">
+        <div class="pie-dot" style="background:${d.color}"></div>
+        <span>${d.label} ${d.value}%</span>
+      </div>`).join('');
+  }
+}
+
+// ===== 部门效率排行 =====
+function initDeptRank() {
+  const el = $('dept-rank-list');
+  if (!el) return;
+  const list = [
+    { name: '华蓥市教育局', rate: 98, cnt: 156 },
+    { name: '华蓥市卫生健康局', rate: 96, cnt: 203 },
+    { name: '明月镇人民政府', rate: 94, cnt: 89 },
+    { name: '华蓥市农业农村局', rate: 92, cnt: 142 },
+    { name: '双河街道办事处', rate: 90, cnt: 67 },
+    { name: '华蓥市住房和城乡建设局', rate: 88, cnt: 178 },
+    { name: '华蓥市交通运输局', rate: 86, cnt: 221 },
+    { name: '华蓥市城市管理局', rate: 84, cnt: 195 },
+    { name: '天池镇人民政府', rate: 82, cnt: 54 },
+    { name: '华蓥市生态环境局', rate: 78, cnt: 112 },
+  ];
+  el.innerHTML = list.map((d, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #F5F5F5;">
+      <div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;
+        background:${i<3?['#FFD700','#C0C0C0','#CD7F32'][i]:'#F0F0F0'};
+        color:${i<3?'#fff':'#999'};">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${d.rate}%;background:${d.rate>=90?'var(--success)':d.rate>=80?'var(--primary)':'var(--warning)'}"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:14px;font-weight:700;color:${d.rate>=90?'var(--success)':'var(--primary)'};">${d.rate}%</div>
+        <div style="font-size:11px;color:var(--text-3);">${d.cnt}条</div>
+      </div>
+    </div>`).join('');
+}
+
+// ===== 部门统计列表 =====
+function initDeptStats() {
+  const el = $('dept-stats-list');
+  if (!el) return;
+  const list = [
+    { name: '交通运输局', total: 221, done: 190, rate: 86, avg: '3.2天' },
+    { name: '城市管理局', total: 195, done: 164, rate: 84, avg: '3.8天' },
+    { name: '卫生健康局', total: 203, done: 195, rate: 96, avg: '1.9天' },
+    { name: '住房和城乡建设局', total: 178, done: 157, rate: 88, avg: '2.8天' },
+    { name: '教育局', total: 156, done: 153, rate: 98, avg: '1.5天' },
+    { name: '生态环境局', total: 112, done: 87, rate: 78, avg: '4.1天' },
+  ];
+  el.innerHTML = list.map(d => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F5F5F5;">
+      <div style="flex:1.5;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+      <div style="flex:1;">
+        <div class="progress-bar"><div class="progress-fill" style="width:${d.rate}%;background:${d.rate>=90?'var(--success)':d.rate>=80?'var(--primary)':'var(--warning)'}"></div></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;width:40px;text-align:center;color:${d.rate>=90?'var(--success)':'var(--primary)'};">${d.rate}%</div>
+      <div style="font-size:12px;color:var(--text-3);width:60px;text-align:right;">${d.total}条 / ${d.avg}</div>
+    </div>`).join('');
+}
+
+// ===== 问政表格 =====
+function initQuestionTable() {
+  const tbody = $('question-table');
+  if (!tbody) return;
+  const rows = [
+    { id:'#2048', time:'04-13 15:30', content:'北大路段路灯损坏多处，夜间存在安全隐患', dept:'城市管理局', status:'pending', urgent:true, deadline:'04-18' },
+    { id:'#2047', time:'04-13 14:22', content:'明月镇卫生院挂号系统故障，影响就诊', dept:'卫生健康局', status:'processing', urgent:false, deadline:'04-20' },
+    { id:'#2046', time:'04-13 12:10', content:'天池镇至双河镇公路多处破损，请尽快修缮', dept:'交通运输局', status:'processing', urgent:true, deadline:'04-15' },
+    { id:'#2045', time:'04-13 10:05', content:'城区某楼盘噪音扰民问题反映', dept:'生态环境局', status:'done', urgent:false, deadline:'04-13' },
+    { id:'#2044', time:'04-12 17:40', content:'经济开发区某路段存在违规占道经营', dept:'城市管理局', status:'forward', urgent:false, deadline:'04-17' },
+    { id:'#2043', time:'04-12 16:15', content:'华龙小学门口上下学期间车辆堵塞严重', dept:'交通运输局', status:'done', urgent:false, deadline:'04-12' },
+    { id:'#2042', time:'04-12 14:00', content:'某社区电梯长期故障未修，老人出行困难', dept:'住建局', status:'processing', urgent:true, deadline:'04-14' },
+    { id:'#2041', time:'04-11 11:30', content:'城北街道生活垃圾未及时清运，臭味扰民', dept:'城市管理局', status:'pending', urgent:false, deadline:'04-16' },
+  ];
+  const statusMap = {
+    pending: '<span class="tag tag-pending">待受理</span>',
+    processing: '<span class="tag tag-processing">处理中</span>',
+    done: '<span class="tag tag-done">已办结</span>',
+    forward: '<span class="tag tag-forward">已转发</span>',
+  };
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="color:var(--primary);font-weight:600;">${r.id}</td>
+      <td style="color:var(--text-3);">${r.time}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.content}">${r.content}</td>
+      <td>${r.dept}</td>
+      <td>${statusMap[r.status]}</td>
+      <td>${r.urgent ? '<span class="tag tag-urgent">紧急</span>' : '<span style="color:var(--text-3);font-size:12px;">-</span>'}</td>
+      <td style="color:${r.status==='done'?'var(--success)':new Date()<new Date('2026-'+r.deadline)?'var(--text-2)':'var(--danger)'};">${r.deadline}</td>
+      <td>
+        <button class="btn btn-ghost" onclick="showToast('查看详情 ${r.id}')">详情</button>
+        ${r.status!=='done'?`<button class="btn btn-primary" onclick="showToast('已回复 ${r.id}')">回复</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+// ===== 部门表格 =====
+function initDeptTable() {
+  const tbody = $('dept-table');
+  if (!tbody) return;
+  const depts = [
+    { name:'华蓥市城市管理局', type:'市直部门', leader:'陈建国', tel:'0826-52****', cnt:195, rate:84, status:'active' },
+    { name:'华蓥市交通运输局', type:'市直部门', leader:'李明华', tel:'0826-63****', cnt:221, rate:86, status:'active' },
+    { name:'华蓥市卫生健康局', type:'市直部门', leader:'张秀珍', tel:'0826-71****', cnt:203, rate:96, status:'active' },
+    { name:'华蓥市教育局', type:'市直部门', leader:'王志强', tel:'0826-84****', cnt:156, rate:98, status:'active' },
+    { name:'明月镇人民政府', type:'乡镇政府', leader:'赵大伟', tel:'0826-55****', cnt:89, rate:94, status:'active' },
+    { name:'天池镇人民政府', type:'乡镇政府', leader:'刘小芳', tel:'0826-58****', cnt:54, rate:82, status:'active' },
+    { name:'双河街道办事处', type:'街道办', leader:'孙国建', tel:'0826-61****', cnt:67, rate:90, status:'active' },
+    { name:'华蓥市生态环境局', type:'市直部门', leader:'吴晓明', tel:'0826-79****', cnt:112, rate:78, status:'inactive' },
+  ];
+  tbody.innerHTML = depts.map(d => `
+    <tr>
+      <td><b>${d.name}</b></td>
+      <td>${d.type}</td>
+      <td>${d.leader}</td>
+      <td style="color:var(--text-3);">${d.tel}</td>
+      <td>${d.cnt}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:${d.rate}%;background:${d.rate>=90?'var(--success)':d.rate>=80?'var(--primary)':'var(--warning)'}"></div></div><span style="font-size:13px;font-weight:700;">${d.rate}%</span></div></td>
+      <td><span class="tag ${d.status==='active'?'tag-active':'tag-inactive'}">${d.status==='active'?'正常运营':'已停用'}</span></td>
+      <td>
+        <button class="btn btn-ghost" onclick="showToast('编辑部门信息')">编辑</button>
+        <button class="btn btn-ghost" onclick="showToast('查看部门详情')">详情</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ===== 词云 =====
+function initWordCloud() {
+  const el = $('word-cloud');
+  if (!el) return;
+  const words = [
+    { text:'道路修缮', size:22, color:'#1677FF' },
+    { text:'路灯', size:16, color:'#FAAD14' },
+    { text:'噪音扰民', size:18, color:'#FF4D4F' },
+    { text:'垃圾清运', size:20, color:'#52C41A' },
+    { text:'停车难', size:24, color:'#722ED1' },
+    { text:'医院就医', size:16, color:'#13C2C2' },
+    { text:'学校周边安全', size:17, color:'#EB2F96' },
+    { text:'农村饮水', size:15, color:'#FA8C16' },
+    { text:'非法占道', size:19, color:'#FF4D4F' },
+    { text:'违规建筑', size:15, color:'#1890FF' },
+    { text:'电梯维修', size:16, color:'#52C41A' },
+    { text:'土地纠纷', size:14, color:'#FAAD14' },
+    { text:'公交班次', size:15, color:'#722ED1' },
+    { text:'拆迁补偿', size:17, color:'#FF4D4F' },
+    { text:'扬尘污染', size:16, color:'#52C41A' },
+  ];
+  el.innerHTML = words.map(w => `
+    <div class="word-item" style="background:${w.color}22;color:${w.color};font-size:${w.size}px;font-weight:600;" onclick="showToast('搜索：${w.text}')">
+      ${w.text}
+    </div>`).join('');
+}
+
+// ===== 初始化 =====
+window.onload = () => {
+  initBarChart();
+  initPieChart();
+  initDeptRank();
+  initQuestionTable();
+  initDeptTable();
+  initWordCloud();
+  initDeptStats();
+  initMonthlyChart();
+};
+</script>
+</body>
+</html>
