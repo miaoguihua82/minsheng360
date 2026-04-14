@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>民声360 - 群众问政平台</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🏛️</span>
+        <div class="logo-text">
+          <h1>民声360</h1>
+          <p>群众问政服务平台</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-login" onclick="showPage('login')">登录</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 轮播 Banner -->
+  <section class="banner">
+    <div class="banner-slider" id="bannerSlider">
+      <div class="slide slide-1">
+        <div class="slide-content">
+          <h2>倾听民声 · 解决民忧</h2>
+          <p>全市各部门乡镇在线问政，让沟通更简单</p>
+          <button class="btn-primary" onclick="showPage('submit')">立即问政</button>
+        </div>
+      </div>
+      <div class="slide slide-2">
+        <div class="slide-content">
+          <h2>透明高效 · 为民服务</h2>
+          <p>全程留痕，督促办理，提升政务服务质量</p>
+          <button class="btn-primary" onclick="showPage('query')">查询进度</button>
+        </div>
+      </div>
+      <div class="slide slide-3">
+        <div class="slide-content">
+          <h2>数据驱动 · 科学治理</h2>
+          <p>智能统计分析，助力政府科学决策</p>
+          <button class="btn-primary" onclick="showPage('stats')">查看数据</button>
+        </div>
+      </div>
+    </div>
+    <div class="banner-dots">
+      <span class="dot active" onclick="goSlide(0)"></span>
+      <span class="dot" onclick="goSlide(1)"></span>
+      <span class="dot" onclick="goSlide(2)"></span>
+    </div>
+  </section>
+
+  <!-- 快捷入口 -->
+  <section class="quick-entry">
+    <div class="section-title">
+      <span class="title-line"></span>
+      <h3>快捷入口</h3>
+      <span class="title-line"></span>
+    </div>
+    <div class="entry-grid">
+      <div class="entry-item" onclick="showPage('submit')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#FF6B6B,#FF8E53)">
+          <span>✍️</span>
+        </div>
+        <p>我要问政</p>
+      </div>
+      <div class="entry-item" onclick="showPage('query')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#4ECDC4,#45B7D1)">
+          <span>🔍</span>
+        </div>
+        <p>进度查询</p>
+      </div>
+      <div class="entry-item" onclick="showPage('dept')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#A8E6CF,#56CCF2)">
+          <span>🏢</span>
+        </div>
+        <p>部门入驻</p>
+      </div>
+      <div class="entry-item" onclick="showPage('dept-reply')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#FFD93D,#FF6B6B)">
+          <span>💬</span>
+        </div>
+        <p>部门回复</p>
+      </div>
+      <div class="entry-item" onclick="showPage('stats')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#C77DFF,#7B2FBE)">
+          <span>📊</span>
+        </div>
+        <p>数据统计</p>
+      </div>
+      <div class="entry-item" onclick="showPage('hot')">
+        <div class="entry-icon" style="background: linear-gradient(135deg,#FF9A9E,#FAD0C4)">
+          <span>🔥</span>
+        </div>
+        <p>热点问题</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 统计数据 -->
+  <section class="stat-bar">
+    <div class="stat-item">
+      <span class="stat-num" id="totalQuestions">12,845</span>
+      <span class="stat-label">累计问政</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num" id="solvedQuestions">11,203</span>
+      <span class="stat-label">已办结</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num" id="deptCount">128</span>
+      <span class="stat-label">入驻单位</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num" id="avgTime">2.3天</span>
+      <span class="stat-label">平均回复</span>
+    </div>
+  </section>
+
+  <!-- 最新动态 -->
+  <section class="news-section">
+    <div class="section-header">
+      <h3>最新问政动态</h3>
+      <a href="javascript:void(0)" class="more-link">更多 ›</a>
+    </div>
+    <div class="news-list">
+      <div class="news-item" onclick="showPage('query')">
+        <div class="news-tag tag-replied">已回复</div>
+        <div class="news-content">
+          <p class="news-title">关于某路段积水问题的建议</p>
+          <div class="news-meta">
+            <span>城市管理局</span>
+            <span>2分钟前</span>
+          </div>
+        </div>
+      </div>
+      <div class="news-item" onclick="showPage('query')">
+        <div class="news-tag tag-processing">处理中</div>
+        <div class="news-content">
+          <p class="news-title">希望在社区增设停车位</p>
+          <div class="news-meta">
+            <span>XX街道办</span>
+            <span>1小时前</span>
+          </div>
+        </div>
+      </div>
+      <div class="news-item" onclick="showPage('query')">
+        <div class="news-tag tag-replied">已回复</div>
+        <div class="news-content">
+          <p class="news-title">关于学校周边交通安全隐患反映</p>
+          <div class="news-meta">
+            <span>公安交警支队</span>
+            <span>3小时前</span>
+          </div>
+        </div>
+      </div>
+      <div class="news-item" onclick="showPage('query')">
+        <div class="news-tag tag-new">新提交</div>
+        <div class="news-content">
+          <p class="news-title">农贸市场卫生环境需要整改</p>
+          <div class="news-meta">
+            <span>市场监管局</span>
+            <span>5小时前</span>
+          </div>
+        </div>
+      </div>
+      <div class="news-item" onclick="showPage('query')">
+        <div class="news-tag tag-replied">已回复</div>
+        <div class="news-content">
+          <p class="news-title">建议完善XX镇便民服务中心设施</p>
+          <div class="news-meta">
+            <span>XX镇人民政府</span>
+            <span>昨天</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 入驻部门展示 -->
+  <section class="dept-showcase">
+    <div class="section-header">
+      <h3>入驻单位</h3>
+      <a href="javascript:void(0)" onclick="showPage('dept-list')" class="more-link">全部 ›</a>
+    </div>
+    <div class="dept-tabs">
+      <button class="dept-tab active" onclick="switchDeptTab(this,'gov')">政府部门</button>
+      <button class="dept-tab" onclick="switchDeptTab(this,'town')">乡镇街道</button>
+      <button class="dept-tab" onclick="switchDeptTab(this,'other')">其他单位</button>
+    </div>
+    <div class="dept-grid" id="deptGrid">
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">城</div>
+        <p>城市管理局</p>
+        <span class="dept-count">345条</span>
+      </div>
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">公</div>
+        <p>公安交警支队</p>
+        <span class="dept-count">234条</span>
+      </div>
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">卫</div>
+        <p>卫生健康局</p>
+        <span class="dept-count">189条</span>
+      </div>
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">教</div>
+        <p>教育局</p>
+        <span class="dept-count">156条</span>
+      </div>
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">农</div>
+        <p>农业农村局</p>
+        <span class="dept-count">132条</span>
+      </div>
+      <div class="dept-card" onclick="showPage('submit')">
+        <div class="dept-avatar">市</div>
+        <p>市场监管局</p>
+        <span class="dept-count">121条</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchNav(this,'home')">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </div>
+    <div class="nav-item" onclick="switchNav(this,'submit');showPage('submit')">
+      <span class="nav-icon">✍️</span>
+      <span>问政</span>
+    </div>
+    <div class="nav-item" onclick="switchNav(this,'query');showPage('query')">
+      <span class="nav-icon">🔍</span>
+      <span>查询</span>
+    </div>
+    <div class="nav-item" onclick="switchNav(this,'mine');showPage('mine')">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </div>
+  </nav>
+
+  <!-- 各子页面容器（弹出层方式） -->
+  <div id="pageOverlay" class="page-overlay" onclick="closePage()"></div>
+  <div id="pageContainer" class="page-container"></div>
+
+  <script src="js/common.js"></script>
+  <script src="js/submit.js"></script>
+  <script src="js/dept.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>
